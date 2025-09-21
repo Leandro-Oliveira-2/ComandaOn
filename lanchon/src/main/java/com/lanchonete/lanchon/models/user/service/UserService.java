@@ -7,6 +7,9 @@ import com.lanchonete.lanchon.models.user.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -49,6 +52,11 @@ public class UserService {
             throw new Exception("Id " + userId + " doesn't exist");
         }
         userRepository.deleteById(userId);
+    }
+
+    public List<User> findAll() {
+        User[] users = userRepository.findAll().toArray(new User[0]);
+        return Arrays.asList(users);
     }
 
 }
