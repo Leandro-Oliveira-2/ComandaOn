@@ -5,6 +5,8 @@ import com.lanchonete.lanchon.models.user.entity.User;
 import com.lanchonete.lanchon.models.user.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -13,6 +15,11 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping("/")
+    public List<User> getUsers() {
+        return userService.findAll();
     }
 
     @PostMapping("/create")
