@@ -194,7 +194,3 @@ erDiagram
 ## 👨‍💻 Autor
 
 Projeto desenvolvido por *Leandro de Olvieira Leite* no contexto da disciplina *Sistemas Corporativos - UFPB*.
-
-
-👉 Quer que eu adicione também um **exemplo de request/response em JSON** para a rota `POST /users` no README, para já documentar melhor a API?
-```
