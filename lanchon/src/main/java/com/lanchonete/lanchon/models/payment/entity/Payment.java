@@ -1,10 +1,8 @@
 package com.lanchonete.lanchon.models.payment.entity;
 
+import com.lanchonete.lanchon.models.order.entity.Order;
 import com.lanchonete.lanchon.models.payment.enums.Method;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,6 +19,11 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Payment {
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

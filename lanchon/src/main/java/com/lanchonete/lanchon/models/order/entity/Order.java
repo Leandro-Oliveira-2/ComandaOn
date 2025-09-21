@@ -1,10 +1,10 @@
 package com.lanchonete.lanchon.models.order.entity;
 
+import com.lanchonete.lanchon.models.item.entity.Item;
 import com.lanchonete.lanchon.models.order.enums.Status;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.lanchonete.lanchon.models.payment.entity.Payment;
+import com.lanchonete.lanchon.models.user.entity.User;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Timer;
 
 
@@ -22,14 +23,22 @@ import java.util.Timer;
 @AllArgsConstructor
 @Entity
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    private int created_by;
+    @OneToMany(mappedBy = "order")
+    private List<Payment> payments;
 
-    @NotBlank
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User user;
+
+    @OneToMany(mappedBy = "order") // "order" é o nome do campo na classe Item
+    private List<Item> items;
+
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     @NotNull
