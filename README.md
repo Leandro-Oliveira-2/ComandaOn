@@ -1,51 +1,59 @@
 # 🍔 LanchOn – Sistema de Gestão de Lanchonete (Backend em Java)
 
 ## 📌 Descrição
-O **LanchOn** é um sistema backend desenvolvido em **Java (Spring Boot)** para gerenciar as operações de uma lanchonete de forma digital e organizada.  
-O objetivo principal é fornecer uma **API REST** que permita o gerenciamento do catálogo de produtos, pedidos, pagamentos e relatórios de vendas.
+
+O **LanchOn** é um sistema backend desenvolvido em **Java (Spring Boot)** para gerenciar as operações de uma lanchonete de forma digital e organizada.
+O objetivo principal é fornecer uma **API REST** que permita o gerenciamento de **produtos, pedidos, pagamentos e relatórios de vendas**.
 
 O sistema contempla três papéis principais de usuário:
-- **Atendente/Caixa**: registra pedidos, envia para a cozinha e finaliza pagamentos.
-- **Cozinha**: acompanha a fila de pedidos e atualiza o status.
-- **Gerente**: gerencia catálogo, usuários e acessa relatórios.
+
+* **Atendente/Caixa** → registra pedidos, envia para a cozinha e finaliza pagamentos.
+* **Cozinha** → acompanha a fila de pedidos e atualiza o status.
+* **Gerente** → gerencia catálogo, usuários e acessa relatórios.
 
 ---
 
 ## ⚙️ Tecnologias Utilizadas
-- **Java 21**
-- **Spring Boot 3**
-- **Spring Data JPA (Hibernate)**
-- **Spring Security** (planejado)
-- **Flyway** (migrações de banco)
-- **PostgreSQL**
-- **Lombok**
-- **Maven**
+
+* Java **21**
+* Spring Boot **3**
+* Spring Data JPA (Hibernate)
+* Spring Security *(planejado)*
+* Flyway (migrações de banco)
+* PostgreSQL
+* Lombok
+* Maven
 
 ---
 
-## 🚀 Como rodar o projeto
+## 🚀 Como Rodar o Projeto
 
-### Pré-requisitos
-- Java 21+
-- PostgreSQL rodando localmente
-- Maven 3.9+
+### 📋 Pré-requisitos
 
-### Passos
+* Java **21+**
+* PostgreSQL rodando localmente
+* Maven **3.9+**
+
+### ▶️ Passos
+
 1. Clone o repositório:
+
    ```bash
    git clone https://github.com/seu-usuario/lanchon-backend.git
    cd lanchon-backend
-````
+   ```
 
-2. Configure o banco de dados no arquivo `application.properties` ou usando variáveis de ambiente:
+2. Configure o banco de dados no arquivo `application.properties` ou via variáveis de ambiente:
 
    ```properties
    spring.datasource.url=jdbc:postgresql://localhost:5432/lanchon
    spring.datasource.username=postgres
    spring.datasource.password=suasenha
+
    spring.jpa.hibernate.ddl-auto=update
    spring.jpa.show-sql=true
    spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
    spring.flyway.enabled=true
    ```
 
@@ -63,9 +71,9 @@ O sistema contempla três papéis principais de usuário:
 
 ---
 
-## 📖 Rotas (versão inicial)
+## 📖 Endpoints da API (versão inicial)
 
-### Autenticação & Usuários
+### 🔑 Autenticação & Usuários
 
 * `POST /auth/login` → autenticação de usuário
 * `GET /me` → informações do usuário autenticado
@@ -74,7 +82,7 @@ O sistema contempla três papéis principais de usuário:
 * `PATCH /users/{id}` → atualizar usuário (**Gerente**)
 * `DELETE /users/{id}` → desativar usuário (**Gerente**)
 
-### Catálogo
+### 🛒 Catálogo
 
 * `GET /categories` → listar categorias
 * `POST /categories` → criar categoria (**Gerente**)
@@ -86,7 +94,7 @@ O sistema contempla três papéis principais de usuário:
 * `PATCH /products/{id}` → atualizar produto (**Gerente**)
 * `DELETE /products/{id}` → remover produto (**Gerente**)
 
-### Pedidos
+### 📦 Pedidos
 
 * `POST /orders` → criar pedido (**Atendente**)
 * `POST /orders/{id}/items` → adicionar item
@@ -97,20 +105,20 @@ O sistema contempla três papéis principais de usuário:
 * `GET /orders` → listar pedidos (com filtros)
 * `GET /orders/{id}` → detalhar pedido
 
-### Cozinha
+### 👨‍🍳 Cozinha
 
 * `GET /kitchen/queue` → listar pedidos pendentes/prontos
 * `POST /orders/{id}/ready` → marcar pedido como pronto
 
-### Pagamentos
+### 💳 Pagamentos
 
 * `POST /orders/{id}/pay` → registrar pagamento
 
-### Relatórios
+### 📊 Relatórios
 
 * `GET /reports/sales/summary?date=YYYY-MM-DD` → resumo de vendas do dia
 
-### Saúde do Sistema
+### ❤️ Saúde do Sistema
 
 * `GET /health` → checagem do sistema
 
@@ -187,10 +195,13 @@ erDiagram
 * [ ] Implementar autenticação com **JWT**
 * [ ] Criar testes unitários e de integração
 * [ ] Adicionar documentação da API com **Swagger**
-* [ ] Configurar CI/CD
+* [ ] Configurar **CI/CD**
 
 ---
 
 ## 👨‍💻 Autor
 
-Projeto desenvolvido por *Leandro de Olvieira Leite* no contexto da disciplina *Sistemas Corporativos - UFPB*.
+Projeto desenvolvido por **Leandro de Oliveira Leite** no contexto da disciplina **Sistemas Corporativos - UFPB**.
+
+
+Quer que eu crie também uma **versão com tabela de rotas/endpoints** (mais organizada para consulta rápida)?
