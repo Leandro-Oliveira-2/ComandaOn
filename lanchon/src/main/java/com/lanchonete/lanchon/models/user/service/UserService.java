@@ -1,6 +1,7 @@
 package com.lanchonete.lanchon.models.user.service;
 
 import com.lanchonete.lanchon.models.user.dto.CreateUserDTO;
+import com.lanchonete.lanchon.models.user.dto.UpdateUserDTO;
 import com.lanchonete.lanchon.models.user.entity.User;
 import com.lanchonete.lanchon.models.user.enums.Role;
 import com.lanchonete.lanchon.models.user.repository.UserRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -40,8 +42,18 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User UpdateUser(User user) {
-        return userRepository.save(user);
+    public User updateUsuario(Long id, UpdateUserDTO userDTO) {
+        Optional<User> user = userRepository.findById(id);
+
+        if (user.isPresent()) {
+            User usuarioExistente = user.get();
+            usuarioExistente.setName(userDTO.name());
+            usuarioExistente.setEmail(userDTO.email());
+            usuarioExistente.setRole(userDTO.role() != null ? userDTO.role() : Role.CLIENT);
+            return  userRepository.save(usuarioExistente);
+        } else {
+            return null;
+        }
     }
 
     public void deleteUser(Long userId) throws Exception {
