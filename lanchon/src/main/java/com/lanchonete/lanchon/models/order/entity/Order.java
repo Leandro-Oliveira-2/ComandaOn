@@ -22,6 +22,7 @@ import java.util.Timer;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "orders")
 public class Order {
 
     @Id

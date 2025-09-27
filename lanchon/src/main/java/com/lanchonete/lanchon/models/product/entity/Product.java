@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 
 @Getter
 @Setter
@@ -22,8 +24,8 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @OneToOne(mappedBy = "item")
-    private Item item;
+    @OneToMany(mappedBy = "product")
+    private List<Item> items;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,5 +42,4 @@ public class Product {
 
     @NotNull
     private Boolean active;
-
 }
