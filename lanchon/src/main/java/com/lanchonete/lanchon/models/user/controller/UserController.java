@@ -2,6 +2,7 @@ package com.lanchonete.lanchon.models.user.controller;
 
 import com.lanchonete.lanchon.models.user.dto.CreateUserDTO;
 import com.lanchonete.lanchon.models.user.dto.UpdateUserDTO;
+import com.lanchonete.lanchon.models.user.dto.UserResponseDTO;
 import com.lanchonete.lanchon.models.user.entity.User;
 import com.lanchonete.lanchon.models.user.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public List<User> getUsers() {
+    public List<UserResponseDTO> getUsers() {
         return userService.findAll();
     }
 
@@ -32,7 +33,7 @@ public class UserController {
     @PostMapping("/update/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UpdateUserDTO userToUpdate) {
         try {
-          User userUpdate =   userService.updateUsuario(id, userToUpdate);
+            User userUpdate =   userService.updateUsuario(id, userToUpdate);
             return ResponseEntity.ok(userUpdate);
         }catch (Exception e){
             return ResponseEntity.badRequest().build();
