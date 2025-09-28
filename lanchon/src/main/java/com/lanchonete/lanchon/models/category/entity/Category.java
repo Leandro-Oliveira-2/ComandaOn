@@ -2,6 +2,7 @@ package com.lanchonete.lanchon.models.category.entity;
 
 import com.lanchonete.lanchon.models.product.entity.Product;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -28,8 +29,9 @@ public class Category {
     @NotBlank
     private String name;
 
-    @NotBlank
-    private int sort_order;
+    @NotNull
+    @Min(0)
+    private Integer sort_order;
 
     @NotNull
     private Boolean active;
