@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -99,4 +100,18 @@ public class OrderService {
         // 6) Retornar DTO de resposta
         return toResponse(saved);
     }
+
+    public List<OrderResponse> getOrders() {
+        return orderRepository.findAll().stream()
+                .map(OrderService::toResponse)
+                .toList();
+    }
+
+    public void deleteOrder(Long id){
+        Optional<Order> orderFind = Optional.ofNullable(orderRepository.findById(id).orElseThrow(() -> {
+            return new RuntimeException("Order não encontrado");
+        }));
+        orderRepository.deleteById(Math.toIntExact(id));
+    }
+
 }
