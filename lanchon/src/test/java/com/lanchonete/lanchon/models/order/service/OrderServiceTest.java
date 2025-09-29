@@ -4,6 +4,7 @@ import com.lanchonete.lanchon.models.item.entity.Item;
 import com.lanchonete.lanchon.models.item.repository.ItemRepository;
 import com.lanchonete.lanchon.models.order.dto.CreateOrder;
 import com.lanchonete.lanchon.models.order.dto.OrderResponse;
+import com.lanchonete.lanchon.models.order.dto.UpdateOrder;
 import com.lanchonete.lanchon.models.order.entity.Order;
 import com.lanchonete.lanchon.models.order.enums.Status;
 import com.lanchonete.lanchon.models.order.repository.OrderRepository;
