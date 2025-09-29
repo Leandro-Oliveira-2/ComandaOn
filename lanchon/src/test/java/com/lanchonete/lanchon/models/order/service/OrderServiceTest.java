@@ -153,4 +153,125 @@ class OrderServiceTest {
         assertThrows(RuntimeException.class, () -> orderService.createOrder(request));
         verify(orderRepository, never()).save(any());
     }
+
+    @Test
+    void updateOrder_successfullyUpdatesOrder() {
+        Long orderId = 200L;
+        Long originalUserId = 1L;
+        Long newUserId = 2L;
+
+        User originalUser = new User();
+        originalUser.setId(originalUserId);
+
+        Item existingItem = new Item();
+        existingItem.setId(30L);
+
+        Order existingOrder = new Order();
+        existingOrder.setId(orderId);
+        existingOrder.setStatus(Status.DRAFT);
+        existingOrder.setSubtotal(new BigDecimal("10.00"));
+        existingOrder.setTotal(new BigDecimal("11.00"));
+        existingOrder.setUser(originalUser);
+        existingOrder.setItems(List.of(existingItem));
+
+        UpdateOrder update = new UpdateOrder(
+                Status.PAID,
+                new BigDecimal("15.00"),
+                new BigDecimal("18.00"),
+                newUserId,
+                List.of(40L, 50L)
+        );
+
+        User newUser = new User();
+        newUser.setId(newUserId);
+
+        Item itemOne = new Item();
+        itemOne.setId(40L);
+        Item itemTwo = new Item();
+        itemTwo.setId(50L);
+        List<Item> fetchedItems = List.of(itemOne, itemTwo);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
+        when(userRepository.findById(newUserId)).thenReturn(Optional.of(newUser));
+        when(itemRepository.findAllById(update.itemIds())).thenReturn(fetchedItems);
+        when(orderRepository.save(existingOrder)).thenAnswer(invocation -> {
+            existingOrder.setUpdatedAt(LocalDateTime.parse("2024-02-01T12:00:00"));
+            return existingOrder;
+        });
+
+        OrderResponse response = orderService.updateOrder(orderId, update);
+
+        assertEquals(orderId, response.id());
+        assertEquals(Status.PAID, response.status());
+        assertEquals(new BigDecimal("15.00"), response.subtotal());
+        assertEquals(new BigDecimal("18.00"), response.total());
+        assertEquals(newUserId, response.userId());
+        assertEquals(update.itemIds(), response.itemIds());
+
+        assertEquals(newUser, existingOrder.getUser());
+        assertEquals(fetchedItems, existingOrder.getItems());
+        assertTrue(fetchedItems.stream().allMatch(item -> item.getOrder() == existingOrder));
+        verify(orderRepository).save(existingOrder);
+    }
+
+    @Test
+    void updateOrder_whenOrderDoesNotExist_throwsRuntimeException() {
+        Long orderId = 999L;
+        UpdateOrder update = new UpdateOrder(null, null, null, null, null);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> orderService.updateOrder(orderId, update));
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    void updateOrder_whenNewUserDoesNotExist_throwsRuntimeException() {
+        Long orderId = 10L;
+        Long newUserId = 20L;
+
+        Order existingOrder = new Order();
+        existingOrder.setId(orderId);
+
+        UpdateOrder update = new UpdateOrder(Status.READY, null, null, newUserId, null);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
+        when(userRepository.findById(newUserId)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> orderService.updateOrder(orderId, update));
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    void updateOrder_whenNewItemsMissing_throwsRuntimeException() {
+        Long orderId = 55L;
+        List<Long> requestedItems = List.of(1L, 2L);
+
+        Order existingOrder = new Order();
+        existingOrder.setId(orderId);
+
+        UpdateOrder update = new UpdateOrder(Status.READY, null, null, null, requestedItems);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
+        Item fetchedItem = new Item();
+fetchedItem.setId(1L);
+when(itemRepository.findAllById(requestedItems)).thenReturn(List.of(fetchedItem));
+
+        assertThrows(RuntimeException.class, () -> orderService.updateOrder(orderId, update));
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    void updateOrder_whenNewItemsListIsEmpty_throwsRuntimeException() {
+        Long orderId = 70L;
+        Order existingOrder = new Order();
+        existingOrder.setId(orderId);
+
+        UpdateOrder update = new UpdateOrder(Status.READY, null, null, null, List.of());
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
+
+        assertThrows(RuntimeException.class, () -> orderService.updateOrder(orderId, update));
+        verify(orderRepository, never()).save(any());
+    }
 }
