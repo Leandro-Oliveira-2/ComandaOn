@@ -2,6 +2,7 @@ package com.lanchonete.lanchon.models.order.controller;
 
 import com.lanchonete.lanchon.models.order.dto.CreateOrder;
 import com.lanchonete.lanchon.models.order.dto.OrderResponse;
+import com.lanchonete.lanchon.models.order.dto.UpdateOrder;
 import com.lanchonete.lanchon.models.order.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
