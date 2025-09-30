@@ -2,11 +2,14 @@ package com.lanchonete.lanchon.models.product.service;
 
 import com.lanchonete.lanchon.models.category.entity.Category;
 import com.lanchonete.lanchon.models.category.repository.CategoryRepository;
+import com.lanchonete.lanchon.models.product.dto.CreateProductDTO;
+import com.lanchonete.lanchon.models.product.dto.ProductResponseDTO;
 import com.lanchonete.lanchon.models.product.dto.UpdateProductDTO;
 import com.lanchonete.lanchon.models.product.entity.Product;
 import com.lanchonete.lanchon.models.product.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,58 +23,83 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
     }
 
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
+    @Transactional
+    public ProductResponseDTO create(CreateProductDTO dto) {
+        Category category = categoryRepository.findById(dto.categoryId())
+                .orElseThrow(() -> new EntityNotFoundException("Category not found: " + dto.categoryId()));
+
+        Product product = new Product();
+        product.setCategory(category);
+        product.setName(dto.name());
+        product.setDescription(dto.description());
+        product.setPrice(dto.price());
+        product.setActive(dto.active());
+
+        return toDto(productRepository.save(product));
     }
 
-    public List<Product> findAll() {
-        return productRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<ProductResponseDTO> findAll() {
+        return productRepository.findAll().stream()
+                .map(ProductService::toDto)
+                .toList();
     }
 
-    public UpdateProductDTO updateProduct(UpdateProductDTO productDTO, Long id) {
-        int productId = Math.toIntExact(id);
-        Product product = productRepository.findById(productId)
+    @Transactional(readOnly = true)
+    public ProductResponseDTO findById(Long id) {
+        return productRepository.findById(Math.toIntExact(id))
+                .map(ProductService::toDto)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + id));
+    }
+
+    @Transactional
+    public ProductResponseDTO update(Long id, UpdateProductDTO dto) {
+        Product product = productRepository.findById(Math.toIntExact(id))
                 .orElseThrow(() -> new EntityNotFoundException("Product not found: " + id));
 
-        if (productDTO.categoryId() != null) {
-            Category category = categoryRepository.findById(productDTO.categoryId().longValue())
-                    .orElseThrow(() -> new EntityNotFoundException("Category not found: " + productDTO.categoryId()));
+        if (dto.categoryId() != null) {
+            Category category = categoryRepository.findById(dto.categoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("Category not found: " + dto.categoryId()));
             product.setCategory(category);
         }
-
-        if (productDTO.name() != null) {
-            product.setName(productDTO.name());
+        if (dto.name() != null) {
+            product.setName(dto.name());
         }
-        if (productDTO.description() != null) {
-            product.setDescription(productDTO.description());
+        if (dto.description() != null) {
+            product.setDescription(dto.description());
         }
-
-        if (productDTO.price() < 0) {
-            throw new IllegalArgumentException("Product price cannot be negative");
+        if (dto.price() != null) {
+            if (dto.price() < 0) {
+                throw new IllegalArgumentException("Product price cannot be negative");
+            }
+            product.setPrice(dto.price());
         }
-        product.setPrice(productDTO.price());
-
-        if (productDTO.active() != null) {
-            product.setActive(productDTO.active());
-        }
-
-        Product savedProduct = productRepository.save(product);
-
-        Integer categoryId = null;
-        String categoryName = null;
-        if (savedProduct.getCategory() != null) {
-            categoryId = Math.toIntExact(savedProduct.getCategory().getId());
-            categoryName = savedProduct.getCategory().getName();
+        if (dto.active() != null) {
+            product.setActive(dto.active());
         }
 
-        return new UpdateProductDTO(
-                savedProduct.getId(),
+        return toDto(productRepository.save(product));
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        Product product = productRepository.findById(Math.toIntExact(id))
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + id));
+        productRepository.delete(product);
+    }
+
+    private static ProductResponseDTO toDto(Product product) {
+        Long categoryId = product.getCategory() != null ? product.getCategory().getId() : null;
+        String categoryName = product.getCategory() != null ? product.getCategory().getName() : null;
+
+        return new ProductResponseDTO(
+                (long) product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getActive(),
                 categoryId,
-                categoryName,
-                savedProduct.getName(),
-                savedProduct.getDescription(),
-                savedProduct.getPrice(),
-                savedProduct.getActive()
+                categoryName
         );
     }
 }

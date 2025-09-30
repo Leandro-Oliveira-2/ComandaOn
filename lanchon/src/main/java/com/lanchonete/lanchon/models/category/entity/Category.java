@@ -1,5 +1,6 @@
 package com.lanchonete.lanchon.models.category.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.lanchonete.lanchon.models.product.entity.Product;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -20,6 +21,7 @@ import java.util.List;
 public class Category {
 
     @OneToMany(mappedBy = "category")
+    @JsonManagedReference
     private List<Product> products;
 
     @Id

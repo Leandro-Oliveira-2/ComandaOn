@@ -1,5 +1,6 @@
 package com.lanchonete.lanchon.models.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lanchonete.lanchon.models.order.entity.Order;
 import com.lanchonete.lanchon.models.user.enums.Role;
 import jakarta.persistence.*;
@@ -26,6 +27,7 @@ public class User {
     private Long id;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Order> orders;
 
     @NotBlank
