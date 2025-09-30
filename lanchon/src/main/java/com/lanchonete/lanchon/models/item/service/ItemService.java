@@ -97,11 +97,16 @@ public class ItemService {
         itemRepository.delete(item);
     }
 
-    public ItemDTO getItem(Long itemId) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item nao encontrado: " + itemId));
-        return toDto(item);
+    public List<ItemDTO> findAllByOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado: " + orderId));
+
+        return order.getItems().stream()
+                .map(ItemService::toDto)
+                .toList();
     }
+
+
 
     public List<ItemDTO> findAll() {
         return itemRepository.findAll().stream()
@@ -154,4 +159,12 @@ public class ItemService {
                 item.getLineTotal()
         );
     }
+
+    public ItemDTO getItem(Long orderId, Long itemId) {
+        return itemRepository.findById(itemId)
+                .filter(existing -> existing.getOrder() != null && existing.getOrder().getId().equals(orderId))
+                .map(ItemService::toDto)
+                .orElseThrow(() -> new RuntimeException("Item não encontrado no pedido informado"));
+    }
+
 }

@@ -11,9 +11,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import lombok.*;
+
 import java.math.BigDecimal;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class Item {
 
     @Id
@@ -37,63 +42,16 @@ public class Item {
     @Column(nullable = false)
     private int quantity;
 
+    @Setter(AccessLevel.NONE)
     @Column(name = "line_total", nullable = false, precision = 12, scale = 2)
-    private BigDecimal lineTotal;
-
-    public Item() {
-    }
+    private BigDecimal lineTotal = BigDecimal.ZERO;
 
     public Item(Order order, Product product, String nameSnapshot, BigDecimal unitPrice, int quantity) {
         this.order = order;
         this.product = product;
         this.nameSnapshot = nameSnapshot;
-        this.unitPrice = unitPrice;
-        this.quantity = quantity;
-        recalculateLineTotal();
-    }
-
-    @PrePersist
-    @PreUpdate
-    void recalculateLineTotal() {
-        if (unitPrice != null) {
-            this.lineTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
-        }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Order getOrder() {
-        return order;
-    }
-
-    public void setOrder(Order order) {
-        this.order = order;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public String getNameSnapshot() {
-        return nameSnapshot;
-    }
-
-    public void setNameSnapshot(String nameSnapshot) {
-        this.nameSnapshot = nameSnapshot;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
+        setUnitPrice(unitPrice);
+        setQuantity(quantity);
     }
 
     public void setUnitPrice(BigDecimal unitPrice) {
@@ -101,20 +59,16 @@ public class Item {
         recalculateLineTotal();
     }
 
-    public int getQuantity() {
-        return quantity;
-    }
-
     public void setQuantity(int quantity) {
         this.quantity = quantity;
         recalculateLineTotal();
     }
 
-    public BigDecimal getLineTotal() {
-        return lineTotal;
-    }
-
-    public void setLineTotal(BigDecimal lineTotal) {
-        this.lineTotal = lineTotal;
+    private void recalculateLineTotal() {
+        if (unitPrice != null) {
+            this.lineTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
+        } else {
+            this.lineTotal = BigDecimal.ZERO;
+        }
     }
 }

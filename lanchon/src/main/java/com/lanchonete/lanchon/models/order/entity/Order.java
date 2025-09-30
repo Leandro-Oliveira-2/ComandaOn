@@ -37,7 +37,7 @@ public class Order {
     @JoinColumn(name = "created_by")
     private User user;
 
-    @OneToMany(mappedBy = "order") // "order" é o nome do campo na classe Item
+    @OneToMany(mappedBy = "order")
     private List<Item> items;
 
     @Enumerated(EnumType.STRING)
@@ -66,4 +66,5 @@ public class Order {
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
 }
