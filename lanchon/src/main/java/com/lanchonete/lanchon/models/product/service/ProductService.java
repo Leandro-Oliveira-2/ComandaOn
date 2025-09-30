@@ -52,6 +52,16 @@ public class ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Product not found: " + id));
     }
 
+    @Transactional(readOnly = true)
+    public List<ProductResponseDTO> findByCategoryId(Long categoryId) {
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new EntityNotFoundException("Category not found: " + categoryId);
+        }
+        return productRepository.findByCategory_Id(categoryId).stream()
+                .map(ProductService::toDto)
+                .toList();
+    }
+
     @Transactional
     public ProductResponseDTO update(Long id, UpdateProductDTO dto) {
         Product product = productRepository.findById(Math.toIntExact(id))

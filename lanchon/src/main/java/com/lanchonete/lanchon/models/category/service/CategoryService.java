@@ -1,5 +1,6 @@
 package com.lanchonete.lanchon.models.category.service;
 
+import com.lanchonete.lanchon.models.category.dto.CategoryResponseDTO;
 import com.lanchonete.lanchon.models.category.dto.CreateCategoryDTO;
 import com.lanchonete.lanchon.models.category.dto.UpdateCategoryDTO;
 import com.lanchonete.lanchon.models.category.entity.Category;
@@ -17,21 +18,24 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
-    public Category create(CreateCategoryDTO createCategoryDTO) {
+    public CategoryResponseDTO create(CreateCategoryDTO createCategoryDTO) {
         Category category = new Category();
         category.setName(createCategoryDTO.name());
         category.setSort_order(createCategoryDTO.sortOrder());
         category.setActive(createCategoryDTO.active());
-        return categoryRepository.save(category);
+        return toDto(categoryRepository.save(category));
     }
 
-    public List<Category> findAll() {
-        return categoryRepository.findAll();
+    public List<CategoryResponseDTO> findAll() {
+        return categoryRepository.findAll().stream()
+                .map(CategoryService::toDto)
+                .toList();
     }
 
-    public Category findById(Long id) {
-        return categoryRepository.findById(id)
+    public CategoryResponseDTO findById(Long id) {
+        Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found: " + id));
+        return toDto(category);
     }
 
     public void delete(Long id) {
@@ -41,7 +45,7 @@ public class CategoryService {
         categoryRepository.deleteById(id);
     }
 
-    public Category update(Long id, UpdateCategoryDTO updateCategoryDTO) {
+    public CategoryResponseDTO update(Long id, UpdateCategoryDTO updateCategoryDTO) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found: " + id));
 
@@ -55,6 +59,15 @@ public class CategoryService {
             category.setActive(updateCategoryDTO.active());
         }
 
-        return categoryRepository.save(category);
+        return toDto(categoryRepository.save(category));
+    }
+
+    private static CategoryResponseDTO toDto(Category category) {
+        return new CategoryResponseDTO(
+                category.getId(),
+                category.getName(),
+                category.getSort_order(),
+                category.getActive()
+        );
     }
 }
