@@ -1,5 +1,12 @@
 package com.lanchonete.lanchon.models.item.service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.lanchonete.lanchon.models.item.dto.CreateItem;
 import com.lanchonete.lanchon.models.item.dto.ItemDTO;
 import com.lanchonete.lanchon.models.item.dto.UpdateItem;
@@ -9,12 +16,6 @@ import com.lanchonete.lanchon.models.order.entity.Order;
 import com.lanchonete.lanchon.models.order.repository.OrderRepository;
 import com.lanchonete.lanchon.models.product.entity.Product;
 import com.lanchonete.lanchon.models.product.repository.ProductRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class ItemService {
@@ -72,6 +73,9 @@ public class ItemService {
         if (dto.quantity() != null) {
             item.setQuantity(dto.quantity());
         }
+        if (dto.notes() != null) {
+            item.setNotes(dto.notes());
+        }
 
         Item saved = itemRepository.save(item);
         recalculateTotals(order);
@@ -99,7 +103,7 @@ public class ItemService {
 
     public List<ItemDTO> findAllByOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Pedido não encontrado: " + orderId));
+                .orElseThrow(() -> new RuntimeException("Pedido nao encontrado: " + orderId));
 
         return order.getItems().stream()
                 .map(ItemService::toDto)
@@ -115,25 +119,38 @@ public class ItemService {
     }
 
     /**
-     * Utilitário compartilhado com OrderService para materializar itens a partir do DTO na criação do pedido.
+     * Utilitario compartilhado com OrderService para materializar itens a partir do DTO na criacao do pedido.
      */
+    @Transactional
     public Item buildItem(Order order, CreateItem dto) {
-        Product product = null;
-        if (dto.productId() != null) {
-            product = productRepository.findById(dto.productId().intValue())
-                    .orElseThrow(() -> new RuntimeException("Produto nao encontrado: " + dto.productId()));
+        if (dto.productId() == null) {
+            throw new RuntimeException("Produto obrigatorio");
         }
 
-        String snapshotName = dto.nameSnapshot();
-        if (snapshotName == null && product != null) {
-            snapshotName = product.getName();
-        }
+        Product product = productRepository.findById(Math.toIntExact(dto.productId()))
+                .orElseThrow(() -> new RuntimeException("Produto nao encontrado: " + dto.productId()));
+
+        String snapshotName = (dto.nameSnapshot() != null && !dto.nameSnapshot().isBlank())
+                ? dto.nameSnapshot()
+                : product.getName();
+
+        BigDecimal unitPrice = dto.unitPrice() != null
+                ? dto.unitPrice()
+                : BigDecimal.valueOf(product.getPrice());
+
+        Integer requestedQuantity = dto.quantity();
+        int quantity = requestedQuantity != null ? requestedQuantity : 1;
+
+        String notes = dto.notes() != null ? dto.notes() : "";
 
         if (snapshotName == null || snapshotName.isBlank()) {
             throw new RuntimeException("Nome do item obrigatorio");
         }
+        if (unitPrice == null) {
+            throw new RuntimeException("Preco do item obrigatorio");
+        }
 
-        return new Item(order, product, snapshotName, dto.unitPrice(), dto.quantity());
+        return new Item(order, product, snapshotName, unitPrice, quantity, notes);
     }
 
     private void recalculateTotals(Order order) {
@@ -156,7 +173,8 @@ public class ItemService {
                 item.getNameSnapshot(),
                 item.getUnitPrice(),
                 item.getQuantity(),
-                item.getLineTotal()
+                item.getLineTotal(),
+                item.getNotes()
         );
     }
 
@@ -164,7 +182,7 @@ public class ItemService {
         return itemRepository.findById(itemId)
                 .filter(existing -> existing.getOrder() != null && existing.getOrder().getId().equals(orderId))
                 .map(ItemService::toDto)
-                .orElseThrow(() -> new RuntimeException("Item não encontrado no pedido informado"));
+                .orElseThrow(() -> new RuntimeException("Item nao encontrado no pedido informado"));
     }
 
 }
