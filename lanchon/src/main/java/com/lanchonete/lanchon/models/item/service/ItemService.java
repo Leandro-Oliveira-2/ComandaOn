@@ -1,12 +1,9 @@
 package com.lanchonete.lanchon.models.item.service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.lanchonete.lanchon.exception.domain.InvalidPayloadException;
+import com.lanchonete.lanchon.exception.domain.ItemNotFoundException;
+import com.lanchonete.lanchon.exception.domain.OrderNotFoundException;
+import com.lanchonete.lanchon.exception.domain.ProductNotFoundException;
 import com.lanchonete.lanchon.models.item.dto.CreateItem;
 import com.lanchonete.lanchon.models.item.dto.ItemDTO;
 import com.lanchonete.lanchon.models.item.dto.UpdateItem;
@@ -16,6 +13,12 @@ import com.lanchonete.lanchon.models.order.entity.Order;
 import com.lanchonete.lanchon.models.order.repository.OrderRepository;
 import com.lanchonete.lanchon.models.product.entity.Product;
 import com.lanchonete.lanchon.models.product.repository.ProductRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ItemService {
@@ -32,13 +35,10 @@ public class ItemService {
         this.productRepository = productRepository;
     }
 
-    /**
-     * Cria e associa um item a um pedido existente, conforme o contrato do README (/orders/{id}/items).
-     */
     @Transactional
     public ItemDTO addItemToOrder(Long orderId, CreateItem dto) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Pedido nao encontrado: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         Item item = buildItem(order, dto);
         Item saved = itemRepository.save(item);
@@ -52,17 +52,14 @@ public class ItemService {
         return toDto(saved);
     }
 
-    /**
-     * Atualiza campos do item. Usado pelo endpoint PATCH /orders/{orderId}/items/{itemId}.
-     */
     @Transactional
     public ItemDTO updateItem(Long orderId, Long itemId, UpdateItem dto) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Pedido nao encontrado: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         Item item = itemRepository.findById(itemId)
                 .filter(existing -> existing.getOrder() != null && existing.getOrder().getId().equals(order.getId()))
-                .orElseThrow(() -> new RuntimeException("Item nao encontrado no pedido informado"));
+                .orElseThrow(() -> new ItemNotFoundException(itemId, orderId));
 
         if (dto.nameSnapshot() != null) {
             item.setNameSnapshot(dto.nameSnapshot());
@@ -82,53 +79,48 @@ public class ItemService {
         return toDto(saved);
     }
 
-    /**
-     * Remove item de um pedido conforme DELETE /orders/{orderId}/items/{itemId}.
-     */
     @Transactional
     public void removeItem(Long orderId, Long itemId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Pedido nao encontrado: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         Item item = itemRepository.findById(itemId)
                 .filter(existing -> existing.getOrder() != null && existing.getOrder().getId().equals(order.getId()))
-                .orElseThrow(() -> new RuntimeException("Item nao encontrado no pedido informado"));
+                .orElseThrow(() -> new ItemNotFoundException(itemId, orderId));
 
         if (order.getItems() != null) {
             order.getItems().removeIf(existing -> existing.getId().equals(itemId));
         }
 
         itemRepository.delete(item);
+        recalculateTotals(order);
     }
 
+    @Transactional(readOnly = true)
     public List<ItemDTO> findAllByOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Pedido nao encontrado: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         return order.getItems().stream()
                 .map(ItemService::toDto)
                 .toList();
     }
 
-
-
+    @Transactional(readOnly = true)
     public List<ItemDTO> findAll() {
         return itemRepository.findAll().stream()
                 .map(ItemService::toDto)
                 .toList();
     }
 
-    /**
-     * Utilitario compartilhado com OrderService para materializar itens a partir do DTO na criacao do pedido.
-     */
     @Transactional
     public Item buildItem(Order order, CreateItem dto) {
         if (dto.productId() == null) {
-            throw new RuntimeException("Produto obrigatorio");
+            throw new InvalidPayloadException("Produto eh obrigatorio");
         }
 
         Product product = productRepository.findById(Math.toIntExact(dto.productId()))
-                .orElseThrow(() -> new RuntimeException("Produto nao encontrado: " + dto.productId()));
+                .orElseThrow(() -> new ProductNotFoundException(dto.productId()));
 
         String snapshotName = (dto.nameSnapshot() != null && !dto.nameSnapshot().isBlank())
                 ? dto.nameSnapshot()
@@ -144,10 +136,10 @@ public class ItemService {
         String notes = dto.notes() != null ? dto.notes() : "";
 
         if (snapshotName == null || snapshotName.isBlank()) {
-            throw new RuntimeException("Nome do item obrigatorio");
+            throw new InvalidPayloadException("Nome do item eh obrigatorio");
         }
         if (unitPrice == null) {
-            throw new RuntimeException("Preco do item obrigatorio");
+            throw new InvalidPayloadException("Preco do item eh obrigatorio");
         }
 
         return new Item(order, product, snapshotName, unitPrice, quantity, notes);
@@ -178,11 +170,12 @@ public class ItemService {
         );
     }
 
+    @Transactional(readOnly = true)
     public ItemDTO getItem(Long orderId, Long itemId) {
         return itemRepository.findById(itemId)
                 .filter(existing -> existing.getOrder() != null && existing.getOrder().getId().equals(orderId))
                 .map(ItemService::toDto)
-                .orElseThrow(() -> new RuntimeException("Item nao encontrado no pedido informado"));
+                .orElseThrow(() -> new ItemNotFoundException(itemId, orderId));
     }
 
 }

@@ -1,5 +1,9 @@
 package com.lanchonete.lanchon.models.payment.service;
 
+import com.lanchonete.lanchon.exception.domain.InvalidOrderStatusException;
+import com.lanchonete.lanchon.exception.domain.InvalidPayloadException;
+import com.lanchonete.lanchon.exception.domain.OrderNotFoundException;
+import com.lanchonete.lanchon.exception.domain.PaymentNotFoundException;
 import com.lanchonete.lanchon.models.order.entity.Order;
 import com.lanchonete.lanchon.models.order.enums.Status;
 import com.lanchonete.lanchon.models.order.repository.OrderRepository;
@@ -8,7 +12,6 @@ import com.lanchonete.lanchon.models.payment.dto.PaymentResponseDTO;
 import com.lanchonete.lanchon.models.payment.dto.UpdatePaymentDTO;
 import com.lanchonete.lanchon.models.payment.entity.Payment;
 import com.lanchonete.lanchon.models.payment.repository.PaymentRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +34,6 @@ public class PaymentService {
     public PaymentResponseDTO create(Long orderId, CreatePaymentDTO dto) {
         Order order = getOrder(orderId);
         ensureOrderAcceptsPayment(order);
-
         validateAmount(dto.amount());
 
         Payment payment = new Payment();
@@ -102,24 +104,24 @@ public class PaymentService {
 
     private Order getOrder(Long orderId) {
         return orderRepository.findById(orderId)
-                .orElseThrow(() -> new EntityNotFoundException("Order not found: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 
     private void ensureOrderExists(Long orderId) {
         if (!orderRepository.existsById(orderId)) {
-            throw new EntityNotFoundException("Order not found: " + orderId);
+            throw new OrderNotFoundException(orderId);
         }
     }
 
     private Payment findPayment(Long orderId, Long paymentId) {
         return paymentRepository.findById(paymentId)
                 .filter(payment -> payment.getOrder() != null && payment.getOrder().getId().equals(orderId))
-                .orElseThrow(() -> new EntityNotFoundException("Payment not found for order: " + orderId));
+                .orElseThrow(() -> new PaymentNotFoundException(paymentId, orderId));
     }
 
     private void ensureOrderAcceptsPayment(Order order) {
         if (order.getStatus() == Status.CANCELED) {
-            throw new IllegalStateException("Cannot register payments for canceled orders");
+            throw new InvalidOrderStatusException("Nao e possivel registrar pagamentos para pedidos cancelados");
         }
     }
 
@@ -140,7 +142,7 @@ public class PaymentService {
 
     private static void validateAmount(BigDecimal value) {
         if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Payment amount must be greater than zero");
+            throw new InvalidPayloadException("Valor do pagamento deve ser maior que zero");
         }
     }
 

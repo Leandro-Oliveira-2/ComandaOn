@@ -1,5 +1,6 @@
 package com.lanchonete.lanchon.models.order.service;
 
+import com.lanchonete.lanchon.exception.domain.UserNotFoundException;
 import com.lanchonete.lanchon.models.order.Response.OrderResponse;
 import com.lanchonete.lanchon.models.order.dto.CreateOrder;
 import com.lanchonete.lanchon.models.order.dto.OrderResponseDTO;
@@ -24,24 +25,17 @@ public class CreateOrderService {
     }
 
     public OrderResponseDTO create(CreateOrder order) {
-        try {
-            User user = userRepository.findById(order.userId())
-                    .orElseThrow(() -> new RuntimeException("Usuário Não Encontrado"));
+        User user = userRepository.findById(order.userId())
+                .orElseThrow(() -> new UserNotFoundException(order.userId()));
 
-            Order orderCreate = new Order();
-            orderCreate.setUser(user);
-            orderCreate.setStatus(Status.DRAFT);
-            orderCreate.setSubtotal(BigDecimal.ZERO);
-            orderCreate.setTotal(BigDecimal.ZERO);
-            orderCreate.setItems(new ArrayList<>());
+        Order orderCreate = new Order();
+        orderCreate.setUser(user);
+        orderCreate.setStatus(Status.DRAFT);
+        orderCreate.setSubtotal(BigDecimal.ZERO);
+        orderCreate.setTotal(BigDecimal.ZERO);
+        orderCreate.setItems(new ArrayList<>());
 
-            Order saved = orderRepository.save(orderCreate);
-            return OrderResponse.toResponse(saved);
-
-        } catch (Exception e) {
-            // cuidado: não engula o erro
-            throw e;
-        }
-
+        Order saved = orderRepository.save(orderCreate);
+        return OrderResponse.toResponse(saved);
     }
 }

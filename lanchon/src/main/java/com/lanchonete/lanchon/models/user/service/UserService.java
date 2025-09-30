@@ -1,5 +1,9 @@
 package com.lanchonete.lanchon.models.user.service;
 
+import com.lanchonete.lanchon.exception.domain.EmailAlreadyExistsException;
+import com.lanchonete.lanchon.exception.domain.InvalidPayloadException;
+import com.lanchonete.lanchon.exception.domain.PasswordMismatchException;
+import com.lanchonete.lanchon.exception.domain.UserNotFoundException;
 import com.lanchonete.lanchon.models.user.dto.CreateUserDTO;
 import com.lanchonete.lanchon.models.user.dto.UpdateUserDTO;
 import com.lanchonete.lanchon.models.user.dto.UserResponseDTO;
@@ -9,7 +13,6 @@ import com.lanchonete.lanchon.models.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -21,13 +24,11 @@ public class UserService {
 
     public User createUser(CreateUserDTO userDTO) {
         if (!userDTO.password().equals(userDTO.confirmPassword())) {
-            throw new IllegalArgumentException("As senhas nao conferem");
+            throw new PasswordMismatchException();
         }
 
-        String existEmail = String.valueOf(this.userRepository.findByEmail(userDTO.email()));
-
-        if (existEmail.equals(userDTO.email())) {
-            throw new IllegalArgumentException("email already exists");
+        if (userRepository.findByEmail(userDTO.email()).isPresent()) {
+            throw new EmailAlreadyExistsException(userDTO.email());
         }
 
         User user = new User();
@@ -40,46 +41,44 @@ public class UserService {
     }
 
     public User updateUsuario(Long id, UpdateUserDTO userDTO) {
-        System.out.println("Id: " + id);
-        System.out.println("User: " + userDTO);
-        Optional<User> user = userRepository.findById(id);
+        User usuarioExistente = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
 
-        if (user.isPresent()) {
-            User usuarioExistente = user.get();
-
-            if (userDTO.name()!= null){
-                usuarioExistente.setName(userDTO.name());
-            }
-
-            if (userDTO.email()!= null){
-                usuarioExistente.setEmail(userDTO.email());
-            }
-            if (userDTO.active() != null){
-                usuarioExistente.setActive(userDTO.active());
-            }
-            if (userDTO.role() != null){
-                usuarioExistente.setRole(userDTO.role());
-            }
-            return userRepository.save(usuarioExistente);
-        } else {
-            return null;
+        if (userDTO.name() != null) {
+            usuarioExistente.setName(userDTO.name());
         }
+
+        if (userDTO.email() != null) {
+            userRepository.findByEmail(userDTO.email())
+                    .filter(u -> !u.getId().equals(id))
+                    .ifPresent(u -> {
+                        throw new EmailAlreadyExistsException(userDTO.email());
+                    });
+            usuarioExistente.setEmail(userDTO.email());
+        }
+        if (userDTO.active() != null) {
+            usuarioExistente.setActive(userDTO.active());
+        }
+        if (userDTO.role() != null) {
+            usuarioExistente.setRole(userDTO.role());
+        }
+        return userRepository.save(usuarioExistente);
     }
 
-    public void deleteUser(Long userId) throws Exception {
+    public void deleteUser(Long userId) {
         if (userId == null) {
-            throw new Exception("userId must not be null");
+            throw new InvalidPayloadException("O identificador do usuario e obrigatorio");
         }
         if (!userRepository.existsById(userId)) {
-            throw new Exception("Id " + userId + " doesn't exist");
+            throw new UserNotFoundException(userId);
         }
         userRepository.deleteById(userId);
     }
 
-    public List<UserResponseDTO> findAll() { // <-- Linha 1
+    public List<UserResponseDTO> findAll() {
         return userRepository.findAll()
                 .stream()
-                .map(user -> new UserResponseDTO(user)) // <-- Linha 2
+                .map(UserResponseDTO::new)
                 .toList();
     }
 }

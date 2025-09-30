@@ -5,6 +5,10 @@ import com.lanchonete.lanchon.models.order.dto.CreateOrder;
 import com.lanchonete.lanchon.models.order.dto.OrderResponseDTO;
 import com.lanchonete.lanchon.models.order.service.CreateOrderService;
 import com.lanchonete.lanchon.models.order.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +30,10 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pedido criado"),
+            @ApiResponse(responseCode = "404", description = "Usuario nao encontrado")
+    })
     @PostMapping
     public ResponseEntity<OrderResponseDTO> create(@RequestBody @Valid CreateOrder order) {
         OrderResponseDTO response = createOrderService.create(order);
