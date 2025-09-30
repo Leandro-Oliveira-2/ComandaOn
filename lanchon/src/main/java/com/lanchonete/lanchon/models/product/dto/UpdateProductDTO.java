@@ -1,11 +1,11 @@
 package com.lanchonete.lanchon.models.product.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record UpdateProductDTO(
-        int id,
-        Integer categoryId,
-        String categoryName,
+        @JsonProperty("category_id") Long categoryId,
         String name,
         String description,
-        double price,
+        Double price,
         Boolean active
-    ) { }
+) { }

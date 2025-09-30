@@ -1,5 +1,7 @@
 package com.lanchonete.lanchon.models.product.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lanchonete.lanchon.models.category.entity.Category;
 import com.lanchonete.lanchon.models.item.entity.Item;
 import jakarta.persistence.*;
@@ -22,9 +24,11 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonBackReference
     private Category category;
 
     @OneToMany(mappedBy = "product")
+    @JsonIgnore
     private List<Item> items;
 
     @Id

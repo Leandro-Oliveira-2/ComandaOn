@@ -1,5 +1,7 @@
 package com.lanchonete.lanchon.models.item.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lanchonete.lanchon.models.order.entity.Order;
 import com.lanchonete.lanchon.models.product.entity.Product;
 import jakarta.persistence.*;
@@ -22,6 +24,7 @@ public class Item {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonIgnore
     private Order order;
 
     @ManyToOne
@@ -32,7 +35,7 @@ public class Item {
     @Column(name = "name_snapshot", nullable = false, length = 250)
     private String nameSnapshot;
 
-    // Pre√ßo unit√°rio no momento da venda
+    // PreÁo unit·rio no momento da venda
     @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal unitPrice;
 
