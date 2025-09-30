@@ -202,6 +202,3 @@ erDiagram
 ## 👨‍💻 Autor
 
 Projeto desenvolvido por **Leandro de Oliveira Leite** no contexto da disciplina **Sistemas Corporativos - UFPB**.
-
-
-Quer que eu crie também uma **versão com tabela de rotas/endpoints** (mais organizada para consulta rápida)?
