@@ -1,9 +1,10 @@
 package com.lanchonete.lanchon.models.payment.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lanchonete.lanchon.models.order.entity.Order;
 import com.lanchonete.lanchon.models.payment.enums.Method;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -20,20 +21,28 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Payment {
 
-    @ManyToOne
-    @JoinColumn(name = "order_id")
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    @JsonIgnore
     private Order order;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    @NotNull
+    @Enumerated(EnumType.ORDINAL)
     private Method method;
 
     @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
     private BigDecimal amount;
 
-    @NotNull
-    private LocalDate created_At;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
