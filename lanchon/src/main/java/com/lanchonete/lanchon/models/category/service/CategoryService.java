@@ -1,11 +1,11 @@
 package com.lanchonete.lanchon.models.category.service;
 
+import com.lanchonete.lanchon.exception.domain.CategoryNotFoundException;
 import com.lanchonete.lanchon.models.category.dto.CategoryResponseDTO;
 import com.lanchonete.lanchon.models.category.dto.CreateCategoryDTO;
 import com.lanchonete.lanchon.models.category.dto.UpdateCategoryDTO;
 import com.lanchonete.lanchon.models.category.entity.Category;
 import com.lanchonete.lanchon.models.category.repository.CategoryRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,20 +34,20 @@ public class CategoryService {
 
     public CategoryResponseDTO findById(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found: " + id));
+                .orElseThrow(() -> new CategoryNotFoundException(id));
         return toDto(category);
     }
 
     public void delete(Long id) {
         if (!categoryRepository.existsById(id)) {
-            throw new EntityNotFoundException("Category not found: " + id);
+            throw new CategoryNotFoundException(id);
         }
         categoryRepository.deleteById(id);
     }
 
     public CategoryResponseDTO update(Long id, UpdateCategoryDTO updateCategoryDTO) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found: " + id));
+                .orElseThrow(() -> new CategoryNotFoundException(id));
 
         if (updateCategoryDTO.name() != null) {
             category.setName(updateCategoryDTO.name());

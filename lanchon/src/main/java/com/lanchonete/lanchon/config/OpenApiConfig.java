@@ -33,20 +33,20 @@ public class OpenApiConfig {
                 .info(new io.swagger.v3.oas.models.info.Info()
                         .title("LanchOn API")
                         .version("1.0.0")
-                        .description("Coleção Swagger para explorar rapidamente as rotas do sistema. Sempre crie um usuário, categoria e produto antes de abrir pedidos e itens.")
+                        .description("Colecao Swagger para explorar rapidamente as rotas do sistema. Sempre crie um usuario, categoria e produto antes de abrir pedidos e itens.")
                         .contact(new io.swagger.v3.oas.models.info.Contact()
                                 .name("Leandro de Oliveira Leite")
                                 .email("leandro@example.com"))
                         .license(new io.swagger.v3.oas.models.info.License().name("MIT")))
                 .externalDocs(new ExternalDocumentation()
-                        .description("Script de teste ponta a ponta disponível em scripts/test-flow.js")
+                        .description("Script de teste ponta a ponta disponivel em scripts/test-flow.js")
                         .url("/scripts/test-flow.js"));
     }
 
     @Bean
     public GroupedOpenApi catalogApi() {
         return GroupedOpenApi.builder()
-                .group("Catálogo")
+                .group("Catalogo")
                 .pathsToMatch("/api/categories/**", "/api/products/**")
                 .build();
     }
@@ -62,7 +62,7 @@ public class OpenApiConfig {
     @Bean
     public GroupedOpenApi userApi() {
         return GroupedOpenApi.builder()
-                .group("Usuários e Login")
+                .group("Usuarios e Login")
                 .pathsToMatch("/api/users/**", "/api/auth/**")
                 .build();
     }
