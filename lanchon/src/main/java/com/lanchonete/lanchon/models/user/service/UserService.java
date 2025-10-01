@@ -10,6 +10,8 @@ import com.lanchonete.lanchon.models.user.dto.UserResponseDTO;
 import com.lanchonete.lanchon.models.user.entity.User;
 import com.lanchonete.lanchon.models.user.enums.Role;
 import com.lanchonete.lanchon.models.user.repository.UserRepository;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,9 +19,11 @@ import java.util.List;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User createUser(CreateUserDTO userDTO) {
@@ -27,14 +31,16 @@ public class UserService {
             throw new PasswordMismatchException();
         }
 
-        if (userRepository.findByEmail(userDTO.email()).isPresent()) {
-            throw new EmailAlreadyExistsException(userDTO.email());
+      final String email = userDTO.email().trim().toLowerCase();
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new EmailAlreadyExistsException(email);
         }
 
+        final String hash = passwordEncoder.encode(userDTO.password());
         User user = new User();
         user.setName(userDTO.name());
-        user.setEmail(userDTO.email());
-        user.setPasswordHash(userDTO.password());
+        user.setEmail(email);
+        user.setPasswordHash(hash);
         user.setRole(userDTO.role() != null ? userDTO.role() : Role.CLIENT);
         user.setActive(true);
         return userRepository.save(user);
@@ -55,6 +61,7 @@ public class UserService {
                         throw new EmailAlreadyExistsException(userDTO.email());
                     });
             usuarioExistente.setEmail(userDTO.email());
+
         }
         if (userDTO.active() != null) {
             usuarioExistente.setActive(userDTO.active());
